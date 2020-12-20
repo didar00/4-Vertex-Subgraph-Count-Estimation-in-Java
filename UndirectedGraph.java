@@ -11,10 +11,10 @@ public class UndirectedGraph {
 	private final int V;
     private int E;
 	private int W;
-	private ArrayList<ArrayList<Edge>> adj;
-	private ArrayList<ArrayList<Object>> edgeTau;
+	public ArrayList<ArrayList<Edge>> adj;
+	public ArrayList<ArrayList<Object>> edgeTau;
 
-	public UndirectedGraph(int size) {
+	public UndirectedGraph(int size, String file) {
 		if (size < 0) throw new IllegalArgumentException("Number of vertices must be nonnegative");
         this.V = size;
         this.E = 0;
@@ -22,7 +22,7 @@ public class UndirectedGraph {
 		// initializes the adjacency list
 		for (int i = 0; i < V; i++) 
 			adj.add(new ArrayList<Edge>()); 
-			
+
 
 		/**
          * 
@@ -31,7 +31,7 @@ public class UndirectedGraph {
          * 
          */
 		try {
-			BufferedReader br = new BufferedReader(new FileReader("mediumG.txt"));
+			BufferedReader br = new BufferedReader(new FileReader(file));
 			String line;
 			while ((line = br.readLine()) != null) {
 				String[] vertices = line.split(" ");
@@ -68,6 +68,10 @@ public class UndirectedGraph {
     public int E() {
         return E;
 	}
+
+	public int W() {
+		return W;
+	}
 	
 
 	public void addEdge(int u, int v) {
@@ -77,86 +81,8 @@ public class UndirectedGraph {
 		adj.get(v).add(e);
 	}
 
-	public void print() {
-		for (int i= 0; i < edgeTau.size(); i++) {
-			System.out.println(edgeTau.get(i).get(0).toString() + " " + edgeTau.get(i).get(1));
-		}
-	}
+
 	
-	/** sampler algorithm to obtain a set of edges that compose a 3-path */
-	public Edge[] sampler() {
-		Edge[] setOfEdges = new Edge[3];
-		Edge middleEdge = null;
-		Edge uPrime = null;
-		Edge vPrime = null;
-
-		print();
-		// pick middle edge e = (u,v) with probability p_e = T_e/W
-		Random rand = new Random();
-		int x = rand.nextInt(W);
-
-		for (int i = 0; i < E; i++) {
-			if (x < (int) edgeTau.get(i).get(1)) {
-				if (i == 0) {
-					middleEdge = (Edge) edgeTau.get(i).get(0);
-				}else {
-					if (x >= (int) edgeTau.get(i-1).get(1)) {
-						middleEdge = (Edge) edgeTau.get(i).get(0);
-					}
-				}
-			}
-		}
-
-		// if the middle edge selected is not valid
-		if (middleEdge == null)
-			throw new NullPointerException("Middle edge couldn't be selected");
-
-		System.out.println("middle edge " + middleEdge.toString());
-		/** selects the neighbors of the middle edge vertex */
-		int u = middleEdge.either();
-		int v = middleEdge.other(u);
-		// select a random neighbor uPrime different than u
-		int y = rand.nextInt(adj.get(u).size());
-		System.out.println("size of adj.get(u).size() " + adj.get(u).size());
-		System.out.println("y value before if uprime " + y);
-		if (middleEdge.equals(adj.get(u).get(y))) {
-			if (y == adj.get(u).size() -1) {
-				y = 0;
-			}else {
-				y++;
-			}
-		}
-		System.out.println("y value after if uprime " + y);
-		uPrime = adj.get(u).get(y);
-
-
-
-		// select a random neighbor vPrime different than v
-		int z = rand.nextInt(adj.get(v).size());
-		System.out.println("size of adj.get(v).size() " + adj.get(v).size());
-		System.out.println("z value before if vprime " + z);
-		if (middleEdge.equals(adj.get(v).get(z))) {
-			if (z == adj.get(v).size() -1) {
-				z = 0;
-			}else {
-				z++;
-			}
-		}
-		System.out.println("z value after if vprime " + z);
-		vPrime = adj.get(v).get(z);
-
-		System.out.println("uprime " + uPrime);
-		System.out.println("vprime " + vPrime);
-		/*
-		// checks if the selected neighbor vertices are valid
-		if (uPrime == null || vPrime == null)
-			throw new NullPointerException("Edges cannot be null");
-			*/
-
-		setOfEdges[0] = uPrime; setOfEdges[1] = middleEdge; setOfEdges[2] = vPrime;
-		
-		return setOfEdges;
-	}
 
 	private int W() {
 		int W = 0;
