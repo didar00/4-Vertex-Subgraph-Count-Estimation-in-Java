@@ -10,18 +10,21 @@ public class UndirectedGraph {
 
 	private final int V;
     private int E;
-	private int W;
-	public ArrayList<ArrayList<Edge>> adj;
-	public ArrayList<ArrayList<Object>> edgeTau;
+	public int W;
+	public ArrayList<ArrayList<Integer>> adj;
+	public int[][] edgeTau;
+	public ArrayList<Integer> degree;
 
-	public UndirectedGraph(int size, String file) {
-		if (size < 0) throw new IllegalArgumentException("Number of vertices must be nonnegative");
-        this.V = size;
-        this.E = 0;
-		adj = new ArrayList<ArrayList<Edge>>(V);
+
+	public UndirectedGraph(int V, int E, String file) {
+		if (V < 0) throw new IllegalArgumentException("Number of vertices must be nonnegative");
+        this.V = V;
+		this.E = E;
+		
+		adj = new ArrayList<ArrayList<Integer>>(V);
 		// initializes the adjacency list
 		for (int i = 0; i < V; i++) 
-			adj.add(new ArrayList<Edge>()); 
+			adj.add(new ArrayList<Integer>()); 
 
 
 		/**
@@ -33,9 +36,17 @@ public class UndirectedGraph {
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(file));
 			String line;
+			int u;
+			int v;
 			while ((line = br.readLine()) != null) {
-				String[] vertices = line.split(" ");
-				addEdge(Integer.parseInt(vertices[0]), Integer.parseInt(vertices[1]));
+				String[] vertices = line.split("\t");
+				u = Integer.parseInt(vertices[0]);
+				v = Integer.parseInt(vertices[1]);
+				if(!isDuplicate(u, v)) {
+					addEdge(u, v);
+					System.out.println(vertices[0] + " " + vertices[1]);
+				}
+				
 			}
 
 			br.close();
@@ -45,10 +56,19 @@ public class UndirectedGraph {
 			e.printStackTrace();
 		}
 
-		edgeTau = new  ArrayList<ArrayList<Object>>();
-		
+		degree = initializeDegree();
+		edgeTau = new int[2*E][3];
 		W = W();
 
+	}
+
+	private boolean isDuplicate(int u, int v) {
+		for (int e : adj.get(v)) {
+			if (e == u) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -69,19 +89,21 @@ public class UndirectedGraph {
         return E;
 	}
 
-	public int W() {
-		return W;
-	}
-	
 
 	public void addEdge(int u, int v) {
         E++;
-		Edge e = new Edge(u, v);
-		adj.get(u).add(e);
-		adj.get(v).add(e);
+		adj.get(u).add(v);
+		adj.get(v).add(u);
 	}
 
 
+	private ArrayList<Integer> initializeDegree() {
+		ArrayList<Integer> degree = new ArrayList<Integer>();
+		for (int i = 0; i < V; i++) {
+			degree.add(getDegree(i));
+		}
+		return degree;
+	}
 	
 
 	private int W() {
@@ -90,29 +112,37 @@ public class UndirectedGraph {
 		int index = 0;
 
 		for (int u = 0; u < V; u++) {
-			int degree1 = getDegree(u);
-			
-			for (Edge e : adj.get(u)) {
-				// the other vertex of the edge
-				int v = e.other(u);
-				int degree2 = getDegree(v);
+			int degree1 = degree.get(u);
+			// for the other vertices that compose an edge with u
+			for (int v : adj.get(u)) {
+				int degree2 = degree.get(v);
 				int tau = (degree1-1)*(degree2-1);
 				W += tau;
+				offset += tau;
+				// adds as edge-tau value pairs
+				edgeTau[index][0] = u;
+				edgeTau[index][1] = v;
+				edgeTau[index][2] = offset;
+				index++;
 				//System.out.println("z value before if vprime " + z);
-				if (!isDuplicateEdge(e)) {
-					edgeTau.add(new ArrayList<Object>());
+				/*
+				if (!duplicateEdgeTauPair(u, v)) {
+					edgeTau.add(new ArrayList<Integer>());
 					offset += tau;
 					// adds as edge-tau value pairs
-					edgeTau.get(index).add(e);
+					edgeTau.get(index).add(u);
+					edgeTau.get(index).add(v);
 					edgeTau.get(index).add(offset);
 					index++;
 				}
+				*/
 			}
 		}
 		return W/2;
 	}
 
-	private boolean isDuplicateEdge(Edge edge) {
+/*
+	private boolean duplicateEdgeTauPair(int u, int v) {
 		for (int i = 0; i < edgeTau.size(); i++) {
 			Edge e = (Edge) edgeTau.get(i).get(0);
 			if (edge.equals(e)) {
@@ -121,8 +151,9 @@ public class UndirectedGraph {
 		}
 		return false;
 	}
+*/
 
-	private int getDegree(int v) {
+	public int getDegree(int v) {
 		int degree = 0;
 		degree += adj.get(v).size();
 	

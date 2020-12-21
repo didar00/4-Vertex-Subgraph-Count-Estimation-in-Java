@@ -2,106 +2,219 @@ import java.util.ArrayList;
 import java.util.Random;
 
 public class FourVertexSubgraphCounter {
+	public static final int[] A = {0, 1, 2, 4, 6, 12};
 	/**
 	 * motif counts
+	 * [0] 3-star
+	 * [1] 3-path
+	 * [2] tailed-triangle
+	 * [3] 4-cycle
+	 * [4] chordal-4-cycle
+	 * [5] 4-clique
+	 * 
+	 * for both the count and the motifs array
+	 * 
 	 */
-	public int c1; // 3-star
-	public int c2; // 3-path
-	public int c3; // tailed-triangle
-	public int c4; // 4-cycle
-	public int c5; // chordal-4-cycle
-	public int c6; // 4-clique
+	public int[] count = {0, 0, 0, 0, 0, 0};
+	public double[] motifs = {0, 0, 0, 0, 0, 0};
 
-	public FourVertexSubgraphCounter() {
-		// initialize motif counts to zero
-		c1 = c2 = c3 = c4 = c5 = c6 = 0;
+	public ArrayList<ArrayList<Integer>> adj;
+	int[][] edgeTau;
+	public ArrayList<Integer> degree;
+	public int E;
+	public int W;
 
+
+	public FourVertexSubgraphCounter(int E, int W, ArrayList<ArrayList<Integer>> adj, ArrayList<Integer> degree, int[][] edgeTau) {
+		this.adj = adj;
+		this.edgeTau = edgeTau;
+		this.E = E;
+		this.W = W;
+		this.degree = degree;
 	}
 
     /** sampler algorithm to obtain a set of edges that compose a 3-path */
-	public Edge[] sampler(int E, int W, ArrayList<ArrayList<Edge>> adj, ArrayList<ArrayList<Object>> edgeTau) {
-		Edge[] setOfEdges = new Edge[3];
-		Edge middleEdge = null;
-		Edge uPrime = null;
-		Edge vPrime = null;
+	public int[][] sampler() {
+		int[][] setOfEdges = new int[3][2];
+		int[] middleEdge = new int[2];
+		int[] uPrime = new int[2];
+		int[] vPrime = new int[2];
 
-		print(edgeTau);
+		//print(edgeTau);
 		// pick middle edge e = (u,v) with probability p_e = T_e/W
 		Random rand = new Random();
-		int x = rand.nextInt(W);
+		int x = rand.nextInt(2*W);
 
-		for (int i = 0; i < E; i++) {
-			if (x < (int) edgeTau.get(i).get(1)) {
+		for (int i = 0; i < 2*E; i++) {
+			if (x < edgeTau[i][2]) {
 				if (i == 0) {
-					middleEdge = (Edge) edgeTau.get(i).get(0);
+					middleEdge[0] = edgeTau[i][0];
+					middleEdge[1] = edgeTau[i][1];
 				}else {
-					if (x >= (int) edgeTau.get(i-1).get(1)) {
-						middleEdge = (Edge) edgeTau.get(i).get(0);
+					if (x >= edgeTau[i-1][2]) {
+						middleEdge[0] = edgeTau[i][0];
+						middleEdge[1] = edgeTau[i][1];
 					}
 				}
 			}
 		}
 
-		// if the middle edge selected is not valid
-		if (middleEdge == null)
-			throw new NullPointerException("Middle edge couldn't be selected");
 
-		System.out.println("middle edge " + middleEdge.toString());
+		//System.out.println("middle edge " + middleEdge.toString());
 		/** selects the neighbors of the middle edge vertex */
-		int u = middleEdge.either();
-		int v = middleEdge.other(u);
+		int u = middleEdge[0];
+		int v = middleEdge[1];
 		// select a random neighbor uPrime different than u
 		int y = rand.nextInt(adj.get(u).size());
-		System.out.println("size of adj.get(u).size() " + adj.get(u).size());
-		System.out.println("y value before if uprime " + y);
-		if (middleEdge.equals(adj.get(u).get(y))) {
+		//System.out.println("size of adj.get(u).size() " + adj.get(u).size());
+		//System.out.println("y value before if uprime " + y);
+		if (adj.get(u).get(y) == v) {
 			if (y == adj.get(u).size() -1) {
 				y = 0;
 			}else {
 				y++;
 			}
 		}
-		System.out.println("y value after if uprime " + y);
-		uPrime = adj.get(u).get(y);
+		//System.out.println("y value after if uprime " + y);
+		uPrime[0] = adj.get(u).get(y);
+		uPrime[1] = u;
 
 
 
 		// select a random neighbor vPrime different than v
 		int z = rand.nextInt(adj.get(v).size());
-		System.out.println("size of adj.get(v).size() " + adj.get(v).size());
-		System.out.println("z value before if vprime " + z);
-		if (middleEdge.equals(adj.get(v).get(z))) {
+		//System.out.println("size of adj.get(v).size() " + adj.get(v).size());
+		//System.out.println("z value before if vprime " + z);
+		if (adj.get(v).get(z) == u) {
 			if (z == adj.get(v).size() -1) {
 				z = 0;
 			}else {
 				z++;
 			}
 		}
-		System.out.println("z value after if vprime " + z);
-		vPrime = adj.get(v).get(z);
+		//System.out.println("z value after if vprime " + z);
+		vPrime[0] = adj.get(v).get(z);
+		vPrime[1] = v;
 
-		System.out.println("uprime " + uPrime);
-		System.out.println("vprime " + vPrime);
-		/*
+		//System.out.println("uprime " + uPrime);
+		//System.out.println("vprime " + vPrime);
+/*
 		// checks if the selected neighbor vertices are valid
 		if (uPrime == null || vPrime == null)
 			throw new NullPointerException("Edges cannot be null");
-			*/
+*/
 
 		setOfEdges[0] = uPrime; setOfEdges[1] = middleEdge; setOfEdges[2] = vPrime;
 		
 		return setOfEdges;
 	}
 
-	public void print(ArrayList<ArrayList<Object>> edgeTau) {
-		for (int i= 0; i < edgeTau.size(); i++) {
-			System.out.println(edgeTau.get(i).get(0).toString() + " " + edgeTau.get(i).get(1));
+
+
+	/**
+	 * Determines the motif induced by given set of edges
+	 * Increments the proper motif count according to
+	 * the configuration of the edges
+	 * @param edges
+	 */
+	private void determineMotif(int[][] edges) {
+		int u = edges[1][0]; // u from middle edge
+		int v = edges[1][1]; // v from middle edge
+		int uP = edges[0][0]; // u prime
+		int vP = edges[2][1]; // v prime
+		
+		if (vP == uP) { // inproper motif, triangular
+			return ;
 		}
+
+		boolean e0 = edgeExists(u, vP);
+		boolean e1 = edgeExists(v, uP);
+		boolean e2 = edgeExists(uP, vP);
+
+		if (e2 && e1 && e0) { // 4-clique
+			count[5]++;
+		} else if (e2 && (e1 || e0)) { // chordal-4-cycle
+			count[4]++;
+		} else if (e2) { // 4-cycle
+			count[3]++;
+		} else if (e1 || e0) { // tailed-triangle
+			count[2]++; 
+		} else { // a 3-path
+			count[1]++; 
+		}
+
+
 	}
 
+	private boolean edgeExists(int u, int v) {
+		for (int vertex : adj.get(u)) {
+			if (vertex == v) {
+				return true;
+			}
+		}
+		return false;
+	}
 
-	public void threePathSampler() {
+	public void threePathSampler(int k) {
+		int[][][] setOfEdges = new int[k][3][2];
 
+		/** 
+		 * 
+		 * Run the sampler algorithm to get k set of edges 
+		 * 
+		 */
+		for (int i = 0; i < k; i++) {
+			setOfEdges[i] = sampler();
+		}
+
+
+		/**
+		 * 
+		 * Determine the motif induced by S_l (setOfEdges[i])
+		 * with the help of determineMotif method
+		 * 
+		 */
+		for (int i = 0; i < k; i++) {
+			determineMotif(setOfEdges[i]);
+		}
+		
+		for (int m = 1; m < 6; m++) {
+			motifs[m] = (count[m]/k)*(W/A[m]);
+		}
+
+		double n1 = calculateN();
+		motifs[0] = n1 - motifs[2] - 2*motifs[4] - 4*motifs[5];
+
+
+	}
+
+	private double calculateN() {
+		double sum = 0;
+		for (int i = 0; i < adj.size(); i++) {
+			sum += combination(adj.get(i).size(), 3);
+		}
+		return sum/2;
+	}
+
+	public double combination(int n, int r) {
+		return factorial(n) / (factorial(r) * factorial(n-r));
+	}
+
+	private int factorial(int n) {
+		int fact = 1;
+		int i = 1;
+		while(i <= n) {
+			fact *= i;
+			i++;
+		}
+		return fact;
+   }
+
+	public int getDegree(int v) {
+		int degree = 0;
+		degree += adj.get(v).size();
+	
+		return degree;
 	}
 
 	
