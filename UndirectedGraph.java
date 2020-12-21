@@ -3,23 +3,24 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Random;
 
 
 public class UndirectedGraph {
 
 	private final int V;
     private int E;
-	public int W;
+	public long W;
 	public ArrayList<ArrayList<Integer>> adj;
-	public int[][] edgeTau;
-	public ArrayList<Integer> degree;
+	public long[][] edgeTau;
+	public long offset;
+
 
 
 	public UndirectedGraph(int V, int E, String file) {
 		if (V < 0) throw new IllegalArgumentException("Number of vertices must be nonnegative");
         this.V = V;
 		this.E = E;
+		offset = 0;
 		
 		adj = new ArrayList<ArrayList<Integer>>(V);
 		// initializes the adjacency list
@@ -44,7 +45,7 @@ public class UndirectedGraph {
 				v = Integer.parseInt(vertices[1]);
 				if(!isDuplicate(u, v)) {
 					addEdge(u, v);
-					System.out.println(vertices[0] + " " + vertices[1]);
+					//System.out.println(vertices[0] + " " + vertices[1]);
 				}
 				
 			}
@@ -56,15 +57,14 @@ public class UndirectedGraph {
 			e.printStackTrace();
 		}
 
-		degree = initializeDegree();
-		edgeTau = new int[2*E][3];
+		edgeTau = new long[2*E][3];
 		W = W();
-
+		System.out.println("W value is : " + W + "\n" + "2*W : " + 2*W);
 	}
 
 	private boolean isDuplicate(int u, int v) {
-		for (int e : adj.get(v)) {
-			if (e == u) {
+		for (int e : adj.get(u)) {
+			if (e == v) {
 				return true;
 			}
 		}
@@ -91,31 +91,20 @@ public class UndirectedGraph {
 
 
 	public void addEdge(int u, int v) {
-        E++;
 		adj.get(u).add(v);
 		adj.get(v).add(u);
 	}
 
 
-	private ArrayList<Integer> initializeDegree() {
-		ArrayList<Integer> degree = new ArrayList<Integer>();
-		for (int i = 0; i < V; i++) {
-			degree.add(getDegree(i));
-		}
-		return degree;
-	}
-	
-
-	private int W() {
-		int W = 0;
-		int offset = 0;
+	private long W() {
+		long W = 0;
 		int index = 0;
 
 		for (int u = 0; u < V; u++) {
-			int degree1 = degree.get(u);
+			int degree1 = adj.get(u).size();
 			// for the other vertices that compose an edge with u
 			for (int v : adj.get(u)) {
-				int degree2 = degree.get(v);
+				int degree2 = adj.get(v).size();
 				int tau = (degree1-1)*(degree2-1);
 				W += tau;
 				offset += tau;
@@ -138,6 +127,7 @@ public class UndirectedGraph {
 				*/
 			}
 		}
+		System.out.println("offset is " + offset);
 		return W/2;
 	}
 
@@ -153,11 +143,13 @@ public class UndirectedGraph {
 	}
 */
 
+/*
 	public int getDegree(int v) {
 		int degree = 0;
 		degree += adj.get(v).size();
 	
 		return degree;
 	}
+*/
 
 }

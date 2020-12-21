@@ -19,18 +19,19 @@ public class FourVertexSubgraphCounter {
 	public double[] motifs = {0, 0, 0, 0, 0, 0};
 
 	public ArrayList<ArrayList<Integer>> adj;
-	int[][] edgeTau;
-	public ArrayList<Integer> degree;
+	long[][] edgeTau;
 	public int E;
-	public int W;
+	public long W;
+	public long offset;
 
 
-	public FourVertexSubgraphCounter(int E, int W, ArrayList<ArrayList<Integer>> adj, ArrayList<Integer> degree, int[][] edgeTau) {
+	public FourVertexSubgraphCounter(int E, long W, long offset, ArrayList<ArrayList<Integer>> adj, long[][] edgeTau) {
 		this.adj = adj;
 		this.edgeTau = edgeTau;
 		this.E = E;
 		this.W = W;
-		this.degree = degree;
+		this.offset = offset;
+		
 	}
 
     /** sampler algorithm to obtain a set of edges that compose a 3-path */
@@ -43,17 +44,17 @@ public class FourVertexSubgraphCounter {
 		//print(edgeTau);
 		// pick middle edge e = (u,v) with probability p_e = T_e/W
 		Random rand = new Random();
-		int x = rand.nextInt(2*W);
+		long x = randomLong();
 
 		for (int i = 0; i < 2*E; i++) {
 			if (x < edgeTau[i][2]) {
 				if (i == 0) {
-					middleEdge[0] = edgeTau[i][0];
-					middleEdge[1] = edgeTau[i][1];
+					middleEdge[0] = (int) edgeTau[i][0];
+					middleEdge[1] = (int) edgeTau[i][1];
 				}else {
 					if (x >= edgeTau[i-1][2]) {
-						middleEdge[0] = edgeTau[i][0];
-						middleEdge[1] = edgeTau[i][1];
+						middleEdge[0] = (int) edgeTau[i][0];
+						middleEdge[1] = (int) edgeTau[i][1];
 					}
 				}
 			}
@@ -93,8 +94,8 @@ public class FourVertexSubgraphCounter {
 			}
 		}
 		//System.out.println("z value after if vprime " + z);
-		vPrime[0] = adj.get(v).get(z);
-		vPrime[1] = v;
+		vPrime[0] = v;
+		vPrime[1] = adj.get(v).get(z);
 
 		//System.out.println("uprime " + uPrime);
 		//System.out.println("vprime " + vPrime);
@@ -109,6 +110,12 @@ public class FourVertexSubgraphCounter {
 		return setOfEdges;
 	}
 
+	public long randomLong() {
+		long leftLimit = 0;
+		long rightLimit = offset;
+		long generatedLong = leftLimit + (long) (Math.random() * (rightLimit - leftLimit));
+		return generatedLong;
+	}
 
 
 	/**
@@ -133,14 +140,19 @@ public class FourVertexSubgraphCounter {
 
 		if (e2 && e1 && e0) { // 4-clique
 			count[5]++;
+			return;
 		} else if (e2 && (e1 || e0)) { // chordal-4-cycle
 			count[4]++;
+			return;
 		} else if (e2) { // 4-cycle
 			count[3]++;
+			return;
 		} else if (e1 || e0) { // tailed-triangle
 			count[2]++; 
+			return;
 		} else { // a 3-path
 			count[1]++; 
+			return;
 		}
 
 
@@ -178,37 +190,56 @@ public class FourVertexSubgraphCounter {
 			determineMotif(setOfEdges[i]);
 		}
 		
+		
 		for (int m = 1; m < 6; m++) {
-			motifs[m] = (count[m]/k)*(W/A[m]);
+			motifs[m] = ((double)count[m]/k)*((double)W/A[m]);
 		}
 
-		double n1 = calculateN();
+		long n1 = calculateN();
+		//System.out.println(n1);
 		motifs[0] = n1 - motifs[2] - 2*motifs[4] - 4*motifs[5];
 
 
 	}
 
-	private double calculateN() {
-		double sum = 0;
+	/**
+	 * Calculates the N_1 value which is composed of
+	 * summation of all vertex's degree's combination with 3
+	 * @return
+	 */
+	private long calculateN() {
+		long sum = 0;
 		for (int i = 0; i < adj.size(); i++) {
-			sum += combination(adj.get(i).size(), 3);
+			int degree = adj.get(i).size();
+			if (degree >= 3) {
+				sum += combination(degree, 3);
+			}
 		}
-		return sum/2;
+		return sum;
 	}
 
-	public double combination(int n, int r) {
-		return factorial(n) / (factorial(r) * factorial(n-r));
+	public long combination(int n, int r) {
+		long numerator = 1;
+		long denumerator = 6;
+
+		for (int i = n; i > n-r; i--) {
+			numerator *= i;
+		}
+
+		return numerator/denumerator;
 	}
 
-	private int factorial(int n) {
-		int fact = 1;
-		int i = 1;
+/*
+	private long factorial(int n) {
+		long fact = 1;
+		long i = 1;
 		while(i <= n) {
 			fact *= i;
 			i++;
 		}
 		return fact;
    }
+*/
 
 	public int getDegree(int v) {
 		int degree = 0;
@@ -217,5 +248,18 @@ public class FourVertexSubgraphCounter {
 		return degree;
 	}
 
+	public void print() {
+		int c = 1;
+		for (int i : count) {
+			System.out.println("count " + c + " is " + i);
+			c++;
+		}
+		c = 1;
+		for (double i : motifs) {
+			System.out.println("Motif " + c + " is " + i);
+			c++;
+		}
+		
+	}
 	
 }
