@@ -31,7 +31,6 @@ public class FourVertexSubgraphCounter {
 		this.E = E;
 		this.W = W;
 		this.offset = offset;
-		
 	}
 
     /** sampler algorithm to obtain a set of edges that compose a 3-path */
