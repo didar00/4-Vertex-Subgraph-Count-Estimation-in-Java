@@ -45,7 +45,6 @@ public class UndirectedGraph {
 				v = Integer.parseInt(vertices[1]);
 				if(!isDuplicate(u, v)) {
 					addEdge(u, v);
-					//System.out.println(vertices[0] + " " + vertices[1]);
 				}
 				
 			}
@@ -59,7 +58,6 @@ public class UndirectedGraph {
 
 		edgeTau = new long[2*E][3];
 		W = W();
-		System.out.println("W value is : " + W + "\n" + "2*W : " + 2*W);
 	}
 
 	private boolean isDuplicate(int u, int v) {
@@ -113,43 +111,10 @@ public class UndirectedGraph {
 				edgeTau[index][1] = v;
 				edgeTau[index][2] = offset;
 				index++;
-				//System.out.println("z value before if vprime " + z);
-				/*
-				if (!duplicateEdgeTauPair(u, v)) {
-					edgeTau.add(new ArrayList<Integer>());
-					offset += tau;
-					// adds as edge-tau value pairs
-					edgeTau.get(index).add(u);
-					edgeTau.get(index).add(v);
-					edgeTau.get(index).add(offset);
-					index++;
-				}
-				*/
 			}
 		}
-		System.out.println("offset is " + offset);
+
 		return W/2;
 	}
-
-/*
-	private boolean duplicateEdgeTauPair(int u, int v) {
-		for (int i = 0; i < edgeTau.size(); i++) {
-			Edge e = (Edge) edgeTau.get(i).get(0);
-			if (edge.equals(e)) {
-				return true;
-			}
-		}
-		return false;
-	}
-*/
-
-/*
-	public int getDegree(int v) {
-		int degree = 0;
-		degree += adj.get(v).size();
-	
-		return degree;
-	}
-*/
 
 }
