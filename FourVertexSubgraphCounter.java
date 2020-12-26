@@ -220,6 +220,9 @@ public class FourVertexSubgraphCounter {
 	}
 
 
+	/**
+	 * @return degree of the vertex
+	 */
 	public int getDegree(int v) {
 		int degree = 0;
 		degree += adj.get(v).size();
@@ -227,10 +230,14 @@ public class FourVertexSubgraphCounter {
 		return degree;
 	}
 
+	/**
+	 * prints each count value per motif 
+	 * and their estimated values
+	 */
 	public void print() {
 		int c = 1;
 		for (int i : count) {
-			System.out.println("count " + c + " is " + i);
+			System.out.println("Count " + c + " is " + i);
 			c++;
 		}
 		c = 1;
