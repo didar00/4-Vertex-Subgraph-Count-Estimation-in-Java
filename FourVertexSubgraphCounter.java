@@ -23,9 +23,11 @@ public class FourVertexSubgraphCounter {
 	public int E;
 	public long W;
 	public long offset;
+	static long min_diff;
+	static int min_diff_key;
 
 
-	public FourVertexSubgraphCounter(int E, long W, long offset, ArrayList<ArrayList<Integer>> adj, long[][] edgeTau) {
+	public FourVertexSubgraphCounter( int E, long W, long offset, ArrayList<ArrayList<Integer>> adj, long[][] edgeTau) {
 		this.adj = adj;
 		this.edgeTau = edgeTau;
 		this.E = E;
@@ -43,7 +45,13 @@ public class FourVertexSubgraphCounter {
 		// pick middle edge e = (u,v) with probability p_e = T_e/W
 		Random rand = new Random();
 		long x = randomLong();
+		int index = maxDiff(x);
 
+		middleEdge[0] = (int) edgeTau[index +1][0];
+		middleEdge[1] = (int) edgeTau[index+1][1];
+
+
+/*
 		for (int i = 0; i < 2*E; i++) {
 			if (x < edgeTau[i][2]) {
 				if (i == 0) {
@@ -57,7 +65,7 @@ public class FourVertexSubgraphCounter {
 				}
 			}
 		}
-
+*/
 
 		/** selects the neighbors of the middle edge vertex */
 		int u = middleEdge[0];
@@ -149,10 +157,8 @@ public class FourVertexSubgraphCounter {
 	}
 
 	private boolean edgeExists(int u, int v) {
-		for (int vertex : adj.get(u)) {
-			if (vertex == v) {
-				return true;
-			}
+		if(adj.get(u).contains(v)) {
+			return true;
 		}
 		return false;
 	}
@@ -182,7 +188,7 @@ public class FourVertexSubgraphCounter {
 		
 		
 		for (int m = 1; m < 6; m++) {
-			motifs[m] = ((double)count[m]/k)*((double)W/A[m]);
+			motifs[m] = (double)((double)count[m]/k)*((double)W/A[m]);
 		}
 
 		long n1 = calculateN();
@@ -236,16 +242,63 @@ public class FourVertexSubgraphCounter {
 	 */
 	public void print() {
 		int c = 1;
+		/*
 		for (int i : count) {
-			System.out.println("Count " + c + " is " + i);
+			System.out.println("count " + c + " is " + i);
 			c++;
 		}
 		c = 1;
+		*/
 		for (double i : motifs) {
 			System.out.println("Motif " + c + " is " + i);
 			c++;
 		}
 		
 	}
+
+	public void maxDiffUtil(int l, int r, long tau) 
+	{ 
+		if (r >= l){
+
+			int mid = l + (r-l)/2;
+
+			// If k itself is present 
+			if (edgeTau[mid][2] == tau) 
+			{ 
+				min_diff_key = mid; 
+				return; 
+			} 
+		
+			// update min_diff and min_diff_key by checking 
+			// current node value 
+			if (min_diff > Math.abs(edgeTau[mid][2] - tau)) 
+			{ 
+				min_diff = Math.abs(edgeTau[mid][2] - tau); 
+				min_diff_key = mid; 
+			} 
+		
+			// if k is less than ptr.key then move in 
+			// left subtree else in right subtree 
+			if (tau < edgeTau[mid][2]) 
+				maxDiffUtil(l, mid -1, tau); 
+			else
+				maxDiffUtil(mid+1, r, tau); 
+
+		}
+		return;
+	} 
+	
+	// Wrapper over maxDiffUtil() 
+	public int maxDiff(long k) 
+	{ 
+		// Initialize minimum difference 
+		min_diff = 999999999; min_diff_key = -1; 
+	
+		// Find value of min_diff_key (Closest key 
+		// in tree with k) 
+		maxDiffUtil(0, 2*E, k); 
+	
+		return min_diff_key; 
+	} 
 	
 }

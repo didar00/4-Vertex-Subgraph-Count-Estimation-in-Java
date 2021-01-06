@@ -14,12 +14,14 @@ public class UndirectedGraph {
 	public long[][] edgeTau;
 	public long offset;
 
+	public BinarySearch bs;
 
 
-	public UndirectedGraph(int V, int E, String file) {
+
+	public UndirectedGraph(int V, String file) {
+		bs = new BinarySearch();
 		if (V < 0) throw new IllegalArgumentException("Number of vertices must be nonnegative");
         this.V = V;
-		this.E = E;
 		offset = 0;
 		
 		adj = new ArrayList<ArrayList<Integer>>(V);
@@ -43,7 +45,7 @@ public class UndirectedGraph {
 				String[] vertices = line.split("\t");
 				u = Integer.parseInt(vertices[0]);
 				v = Integer.parseInt(vertices[1]);
-				if(!isDuplicate(u, v)) {
+				if(!adj.get(u).contains(v)) {
 					addEdge(u, v);
 				}
 				
@@ -55,19 +57,17 @@ public class UndirectedGraph {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		
+		for (int i = 0; i< adj.size(); i++)
+		{
+			E += adj.get(i).size();
+		}
+		E = E/2;
 
 		edgeTau = new long[2*E][3];
 		W = W();
 	}
 
-	private boolean isDuplicate(int u, int v) {
-		for (int e : adj.get(u)) {
-			if (e == v) {
-				return true;
-			}
-		}
-		return false;
-	}
 
 	/**
      * Returns the number of vertices in this graph.
@@ -106,10 +106,13 @@ public class UndirectedGraph {
 				int tau = (degree1-1)*(degree2-1);
 				W += tau;
 				offset += tau;
+				
+				
 				// adds as edge-tau value pairs
 				edgeTau[index][0] = u;
 				edgeTau[index][1] = v;
 				edgeTau[index][2] = offset;
+				
 				index++;
 			}
 		}
